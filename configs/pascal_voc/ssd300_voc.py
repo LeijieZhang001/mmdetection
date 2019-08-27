@@ -48,7 +48,7 @@ dataset_type = 'VOCDataset'
 data_root = 'data/VOCdevkit/'
 img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[1, 1, 1], to_rgb=True)
 data = dict(
-    imgs_per_gpu=4,
+    imgs_per_gpu=32,
     workers_per_gpu=2,
     train=dict(
         type='RepeatDataset',
@@ -105,8 +105,8 @@ data = dict(
         with_label=False,
         test_mode=True,
         resize_keep_ratio=False))
-# optimizer
-optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=5e-4)
+# optimizer  1e-3 for batchsize 4;
+optimizer = dict(type='SGD', lr=8e-3, momentum=0.9, weight_decay=5e-4)
 optimizer_config = dict()
 # learning policy
 lr_config = dict(
@@ -125,7 +125,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 24
+total_epochs = 24 #24
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/ssd300_voc'
