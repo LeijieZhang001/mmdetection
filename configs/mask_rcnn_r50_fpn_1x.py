@@ -123,7 +123,7 @@ data = dict(
         type=dataset_type,
         ann_file=data_root + 'annotations/instances_train2017.json',
         img_prefix=data_root + 'train2017/',
-        img_scale=(1333, 800),
+        img_scale=(1333, 800),    # the rescaled max(h,w) == 1333 && the rescaled min(h,w) <= 800 or max(h,w) <= 1333 && min(h,w) == 800
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0.5,
