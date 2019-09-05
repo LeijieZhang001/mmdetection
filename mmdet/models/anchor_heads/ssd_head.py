@@ -48,13 +48,13 @@ class SSDHead(AnchorHead):
         self.cls_convs = nn.ModuleList(cls_convs)
 
         min_ratio, max_ratio = basesize_ratio_range
-        min_ratio = int(min_ratio * 100)
-        max_ratio = int(max_ratio * 100)
-        step = int(np.floor(max_ratio - min_ratio) / (len(in_channels) - 2))
+        min_ratio = int(min_ratio * 100)  # 20
+        max_ratio = int(max_ratio * 100)  # 90
+        step = int(np.floor(max_ratio - min_ratio) / (len(in_channels) - 2)) # 17
         min_sizes = []
         max_sizes = []
-        for r in range(int(min_ratio), int(max_ratio) + 1, step):
-            min_sizes.append(int(input_size * r / 100))
+        for r in range(int(min_ratio), int(max_ratio) + 1, step):   # 20 37 54 71 88
+            min_sizes.append(int(input_size * r / 100))             #
             max_sizes.append(int(input_size * (r + step) / 100))
         if input_size == 300:
             if basesize_ratio_range[0] == 0.15:  # SSD300 COCO
@@ -70,6 +70,8 @@ class SSDHead(AnchorHead):
             elif basesize_ratio_range[0] == 0.15:  # SSD512 VOC
                 min_sizes.insert(0, int(input_size * 7 / 100))
                 max_sizes.insert(0, int(input_size * 15 / 100))
+        print("min_sizes: ", min_sizes)
+        print("max_sizes: ", max_sizes)
         self.anchor_generators = []
         self.anchor_strides = anchor_strides
         for k in range(len(anchor_strides)):
@@ -87,6 +89,9 @@ class SSDHead(AnchorHead):
             anchor_generator.base_anchors = torch.index_select(
                 anchor_generator.base_anchors, 0, torch.LongTensor(indices))
             self.anchor_generators.append(anchor_generator)
+            print('anchor_generator_base_anchors: ', anchor_generator.base_anchors.size())
+            print(anchor_generator.base_anchors.numpy())
+        print('len(anchor_generators): ', len(self.anchor_generators))
 
         self.target_means = target_means
         self.target_stds = target_stds
@@ -108,6 +113,12 @@ class SSDHead(AnchorHead):
             bbox_preds.append(reg_conv(feat))
         return cls_scores, bbox_preds
 
+        # all_cls_scores:    32 * (38*38*4+19*19*6...) * 21
+        # all_bbox_preds:    32 * (38*38*4+19*19*6...) * 4
+        # all_labels:        32 * anchors
+        # all_label_weights: 32 * anchors
+        # all_bbox_targets:  32 * anchors * 4
+        # all_bbox_weights:  32 * anchors * 4
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
                     bbox_targets, bbox_weights, num_total_samples, cfg):
         loss_cls_all = F.cross_entropy(
@@ -130,6 +141,7 @@ class SSDHead(AnchorHead):
             bbox_weights,
             beta=cfg.smoothl1_beta,
             avg_factor=num_total_samples)
+        #print("loss_bbox: ", loss_bbox.size())
         return loss_cls[None], loss_bbox
 
     def loss(self,
@@ -142,6 +154,10 @@ class SSDHead(AnchorHead):
              gt_bboxes_ignore=None):
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         assert len(featmap_sizes) == len(self.anchor_generators)
+        #for featmap in cls_scores:
+        #    print('cls_scores size: ', featmap.size())
+        #for featmap in bbox_preds:
+        #    print('bbox_preds size: ', featmap.size())
 
         anchor_list, valid_flag_list = self.get_anchors(
             featmap_sizes, img_metas)
@@ -163,7 +179,29 @@ class SSDHead(AnchorHead):
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
          num_total_pos, num_total_neg) = cls_reg_targets
 
+        #print('len(labels_list): ', len(labels_list))
+        #for labels in labels_list:
+        #    print('labels.size(): ', labels.size())
+        #print('len(label_weights_list): ', len(label_weights_list))
+        #for label_weights in label_weights_list:
+        #    print('label_weights.size(): ', label_weights.size())
+        #print('len(bbox_targets_list): ', len(bbox_targets_list))
+        #for bbox_targets in bbox_targets_list:
+        #    print('bbox_targets.size(): ', bbox_targets.size())
+        #print('len(bbox_weights_list): ', len(bbox_weights_list))
+        #for bbox_weights in bbox_weights_list:
+        #    print('bbox_weights.size(): ', bbox_weights.size())
+        #print('num_total_pos: ', num_total_pos)
+        #print('num_total_neg: ', num_total_neg)
+
         num_images = len(img_metas)
+        # all_cls_scores:    32 * (38*38*4+19*19*6...) * 21
+        # all_bbox_preds:    32 * (38*38*4+19*19*6...) * 4
+        # all_labels:        32 * anchors
+        # all_label_weights: 32 * anchors
+        # all_bbox_targets:  32 * anchors * 4
+        # all_bbox_weights:  32 * anchors * 4
+
         all_cls_scores = torch.cat([
             s.permute(0, 2, 3, 1).reshape(
                 num_images, -1, self.cls_out_channels) for s in cls_scores
@@ -190,4 +228,8 @@ class SSDHead(AnchorHead):
             all_bbox_weights,
             num_total_samples=num_total_pos,
             cfg=cfg)
+        #print("len(losses_cls): ", len(losses_cls))
+        #print('len(losses_bbox): ', len(losses_bbox))
+        #a = dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
+        #print("aaaaaaaaa: ", a.keys())
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)

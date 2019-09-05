@@ -80,10 +80,22 @@ def main():
         logger.info('Set random seed to {}'.format(args.seed))
         set_random_seed(args.seed)
 
+    print("--- main: build_detector")
     model = build_detector(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
+    print(model)
+    print("model: ", model.state_dict().keys())
+    print("model: ", model.named_children())
+    print("model: ", model.named_modules())
 
     datasets = [build_dataset(cfg.data.train)]
+    print("datasets type: ", type(datasets))
+    print("datasets[0] type: ", type(datasets[0]))
+    #print("dataset: ", datasets[0].dataset)
+    #print("times: ", datasets[0].times)
+    #print("CLASSES: ", datasets[0].CLASSES)
+    #print("length: ", datasets[0]._ori_len)
+    #exit(0)
     if len(cfg.workflow) == 2:
         datasets.append(build_dataset(cfg.data.val))
     if cfg.checkpoint_config is not None:
