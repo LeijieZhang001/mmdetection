@@ -59,9 +59,6 @@ def kitti_eval(result_file, cvt_result, cfg):
     eval_fun = './tools/kitti_devkit_object/kitti_eval/build/eval_3d ' + gt_dir + ' ' + cvt_result
     os.system(eval_fun)
 
-
-
-
 def main():
     parser = ArgumentParser(description='Kitti Evaluation')
     parser.add_argument('result', help='pkl result file path')
@@ -70,7 +67,6 @@ def main():
     args = parser.parse_args()
     cfg = mmcv.Config.fromfile(args.config)
     kitti_eval(args.result, args.cvt_result, cfg)
-
 
 if __name__ == '__main__':
     main()
