@@ -1,3 +1,13 @@
+'''
+----------------------------------------------------------
+  @File:     kitti.py
+  @Brief:    kitti dataset wrapper
+  @Author:   Leijie.Zhang
+  @Created:  17:20/9/5/2019
+  @Modified: 17:20/9/5/2019
+----------------------------------------------------------
+'''
+
 import os.path as osp
 
 import mmcv
