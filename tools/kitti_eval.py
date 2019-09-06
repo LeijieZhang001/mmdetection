@@ -34,7 +34,6 @@ import numpy as np
 #   -1000        1    score        Only for results: Float, indicating confidence in
 #                                  detection, needed for p/r curves, higher is better.
 
-
 CLASSES = {0: 'Car', 1: 'Pedestrian', 2: 'Cyclist'}
 
 def kitti_eval(result_file, cvt_result, cfg):
