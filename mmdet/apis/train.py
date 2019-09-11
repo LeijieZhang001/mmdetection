@@ -36,12 +36,15 @@ def parse_losses(losses):
 
 def batch_processor(model, data, train_mode):
     losses = model(**data)
+    print('begin to parse_losses')
     loss, log_vars = parse_losses(losses)
     #print("loss: ", loss)
     #print(log_vars)
 
+    num_samples = len(data['img'].data) if 'img' in data.keys() else len(data['gt_labels'].data[0])
+    #print('num_samples: ', num_samples)
     outputs = dict(
-        loss=loss, log_vars=log_vars, num_samples=len(data['img'].data))
+        loss=loss, log_vars=log_vars, num_samples=num_samples)
 
     return outputs
 

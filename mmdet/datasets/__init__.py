@@ -12,8 +12,10 @@ from .wider_face import WIDERFaceDataset
 from .xml_style import XMLDataset
 
 from .kitti import KittiDataset
+from .point_cloud import PointCloudDataset
+from .kitti3d import Kitti3dDataset
 
-__all__ = ['KittiDataset'
+__all__ = ['KittiDataset', 'PointCloudDataset', 'Kitti3dDataset',
     'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset',
     'CityscapesDataset', 'GroupSampler', 'DistributedGroupSampler',
     'build_dataloader', 'to_tensor', 'random_scale', 'show_ann',
