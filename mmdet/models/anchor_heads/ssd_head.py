@@ -232,4 +232,5 @@ class SSDHead(AnchorHead):
         #print('len(losses_bbox): ', len(losses_bbox))
         #a = dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
         #print("aaaaaaaaa: ", a.keys())
-        return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
+        #return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
+        return dict(loss_cls=losses_cls)
