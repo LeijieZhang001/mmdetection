@@ -69,7 +69,7 @@ data = dict(
         pc_range=(0, -39.68, -3, 69.12, 39.68, 1),  # c x h x w = 10 x 496 x 432
         resolution = (0.16, 0.16, 0.4),
         ann_file=data_root + 'ImageSets/train.txt',
-        pc_prefix=data_root + 'training/pointpillars_496x432_Px100x9/'),
+        pc_prefix=data_root + 'training/pointpillars_496x432_Px100x9_np16/'),
     #),
     val=dict(
         type=dataset_type,
@@ -78,7 +78,7 @@ data = dict(
         pc_range=(0, -39.68, -3, 69.12, 39.68, 1),  # h x w = 496 x 432
         resolution = (0.16, 0.16, 0.4),
         ann_file=data_root + 'ImageSets/val.txt',
-        pc_prefix=data_root + 'training/pointpillars_496x432_Px100x9/'),
+        pc_prefix=data_root + 'training/pointpillars_496x432_Px100x9_np16/'),
     test=dict(
         type=dataset_type,
         handcraft_feats=False,
@@ -86,7 +86,7 @@ data = dict(
         pc_range=(0, -39.68, -3, 69.12, 39.68, 1),  # h x w = 496 x 432
         resolution = (0.16, 0.16, 0.4),
         ann_file=data_root + 'ImageSets/val.txt',
-        pc_prefix=data_root + 'training/pointpillars_496x432_Px100x9/'))
+        pc_prefix=data_root + 'training/pointpillars_496x432_Px100x9_np16/'))
 # optimizer
 optimizer = dict(type='Adam', lr=0.0002, weight_decay=1e-4)   # 0.0004
 optimizer_config = dict()
@@ -111,7 +111,7 @@ log_config = dict(
 total_epochs = 160
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/pillar_kitti'
+work_dir = './work_dirs/pillar_kitti_focalloss'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

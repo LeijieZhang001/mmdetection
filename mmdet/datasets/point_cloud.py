@@ -143,8 +143,8 @@ class PointCloudDataset(Dataset):
                 gt_bboxes=DC(to_tensor(gt_bboxes)))
         else:
             if self.load_feats:
-                pillars = np.fromfile(osp.join(self.pc_prefix, 'pillars_'+pc_info['filename']), dtype=np.float32).reshape((-1, 100, 9))
-                coords = np.fromfile(osp.join(self.pc_prefix, 'coords_'+pc_info['filename']), dtype=np.int64).reshape((-1, 2))
+                pillars = np.fromfile(osp.join(self.pc_prefix, 'pillars_'+pc_info['filename']), dtype=np.float16).reshape((-1, 100, 9)).astype(np.float32)
+                coords = np.fromfile(osp.join(self.pc_prefix, 'coords_'+pc_info['filename']), dtype=np.int16).reshape((-1, 2)).astype(np.int32)
                 assert pillars.shape[0] == coords.shape[0], 'pillars & coords size mismatch.'
             else:
                 raise NotImplementedError

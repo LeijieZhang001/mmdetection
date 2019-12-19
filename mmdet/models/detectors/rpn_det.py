@@ -475,7 +475,7 @@ class RPNDet(RPNBase):
                  class_name=None,
                  matched_threshold=-1,
                  unmatched_threshold=-1,
-                 use_sigmoid_score=False,
+                 use_sigmoid_score=True,
                  **kwargs):
         super(RPNDet, self).__init__(input_chw, **kwargs)
         self.anchor_generator = AnchorGeneratorStride(sizes=sizes,
@@ -586,7 +586,7 @@ class RPNDet(RPNBase):
             else:
                 # encode background as first element in one-hot vector
                 if self._use_sigmoid_score:
-                    total_scores = torch.sigmoid(cls_preds)[..., 1:]
+                    total_scores = torch.sigmoid(cls_preds)[..., 0]
                 else:
                     total_scores = F.softmax(cls_preds, dim=-1)[..., 1:]
             # Apply NMS in birdeye view
@@ -852,7 +852,7 @@ class RPNDet(RPNBase):
                                     gt_bboxes[i].cpu().numpy(),
                                     self.similarity_fn,
                                     self.box_encoding_fn,
-                                    neg_pos=20,
+                                    # neg_pos=20,
                                     rpn_batch_size=512)
             labels.append(torch.Tensor(res['labels']).type(torch.int32))
             bbox_targets.append(torch.Tensor(res['bbox_targets']))
@@ -870,8 +870,8 @@ class RPNDet(RPNBase):
         targets = labels #.reshape(-1)
         targets[targets<0] = 0
         print('targets max: ', targets.max())
-        loss_cls_all = F.cross_entropy(cls_scores.reshape(-1, cls_scores.shape[-1]), targets.reshape(-1), reduction='none')
-        #loss_cls_all = self.focalloss(cls_scores.reshape(-1, cls_scores.shape[-1]), targets, reduction_override='none')
+        # loss_cls_all = F.cross_entropy(cls_scores.reshape(-1, cls_scores.shape[-1]), targets.reshape(-1), reduction='none')
+        loss_cls_all = self.focalloss(cls_scores.reshape(-1, cls_scores.shape[-1])[:,0].reshape(-1,1), targets, reduction_override='none')
         print('loss_cls_all size: ', loss_cls_all.shape)
         num_pos_samples = pos_inds.size(0)
         num_neg_samples = neg_inds.size(0)
@@ -880,6 +880,10 @@ class RPNDet(RPNBase):
         #assert num_pos_samples*100 >= num_neg_samples, 'pos neg ration error.'
         loss_cls_pos = loss_cls_all[pos_inds].sum() / num_pos_samples / batch_size
         loss_cls_neg = loss_cls_all[neg_inds].sum() / num_pos_samples / batch_size
+        # ## OHEM, set neg_pos = None
+        # num_neg_samples = (3 * num_pos_samples) if (3 * num_pos_samples) < num_neg_samples else num_neg_samples
+        # loss_cls_neg, _ = loss_cls_all[neg_inds].topk(num_neg_samples)
+        # loss_cls_neg = loss_cls_neg.sum() / num_pos_samples / batch_size
 
         loc_loss_weight = 2.0
         loss_loc_all = self.smooth_l1_loss(bbox_preds, bbox_targets, reduction_override='none')
@@ -897,16 +901,15 @@ class RPNDet(RPNBase):
         #fea = feats.cpu().numpy()
         labels = labels.cpu().numpy().reshape(batch_size,-1)
         anchors = self.anchors.reshape((-1, self.anchors.shape[-1]))
-        total_scores = total_scores.cpu().detach().numpy().reshape(batch_size, -1, 2)
+        total_scores = total_scores.cpu().detach().numpy().reshape(batch_size, -1, cls_scores.shape[-1])
         #for i in range(fea.shape[0]):
             #bv = debug_feats(fea[i,...], channel=5, show=False)
         for i in range(len(feats)):
             bv = np.zeros((496, 432, 3), dtype = np.uint8)
 
-            ## pos anchors
-            pos_inds = (total_scores[i,:,1].reshape(-1) > 0.5)
-            pos_anc = anchors[pos_inds,:].reshape((-1, anchors.shape[-1]))
-            bv = plot_bbox3d(bv, pos_anc, scalar=(25,188,0))
+            # gt_boxes
+            boxes_3d = gt_bboxes[i].cpu().numpy()
+            bv = plot_bbox3d(bv, boxes_3d)
 
             ## assigned anchors
             pos_inds = (labels[i,...] > 0).nonzero()
@@ -914,9 +917,10 @@ class RPNDet(RPNBase):
             anc = anchors[pos_inds,:].reshape((-1, anchors.shape[-1]))
             bv = plot_bbox3d(bv, anc, scalar=(125,92,0))
 
-            # gt_boxes
-            boxes_3d = gt_bboxes[i].cpu().numpy()
-            bv = plot_bbox3d(bv, boxes_3d)
+            ## pos anchors
+            pos_inds = (total_scores[i,:,0].reshape(-1) > 0.6)
+            pos_anc = anchors[pos_inds,:].reshape((-1, anchors.shape[-1]))
+            bv = plot_bbox3d(bv, pos_anc, scalar=(25,188,0))
 
             cv2.imshow('hh', bv)
             cv2.waitKey(2)

@@ -110,7 +110,7 @@ log_config = dict(
 total_epochs = 160
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/rpn_kitti'
+work_dir = './work_dirs/rpn_kitti/rpn_kitti_focalloss_negpos400'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
